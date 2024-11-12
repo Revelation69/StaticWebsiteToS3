@@ -1,0 +1,44 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: CloudFormation Template for Hosting an Angular Static Website on S3 with Public Access
+
+Parameters:
+  BucketName:
+    Type: String
+    Description: "Name of the S3 bucket to host the Angular website"
+    AllowedPattern: "^[a-z0-9.-]+$"
+    ConstraintDescription: "The bucket name can only contain lowercase letters, numbers, dots, and hyphens."
+
+Resources:
+  AngularWebsiteBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref BucketName
+      PublicAccessBlockConfiguration: 
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: index.html
+
+  BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref AngularWebsiteBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: "PublicReadGetObject"
+            Effect: Allow
+            Principal: "*"
+            Action: "s3:GetObject"
+            Resource: !Sub "${AngularWebsiteBucket.Arn}/*"
+    DependsOn: AngularWebsiteBucket  # Ensures the bucket is created and configured before applying the policy
+
+Outputs:
+  WebsiteURL:
+    Description: "Static Website URL"
+    Value: !GetAtt AngularWebsiteBucket.WebsiteURL
+    Export:
+      Name: AngularWebsiteURL
