@@ -28,7 +28,7 @@ Parameters:
   paramBuildSpecRelativePathInGitHub:
     Description: Provide a relative path for BuildSpec yaml file in source code for static website 
     Type: String
-    Default:  frontend/app-for-aws/buildspec.yml
+    Default:  frontend/aws-app/buildspec.yml
   paramStaticWebsiteHostingBucketName:
     Description: Specify an existing S3 bucket that hosts static website
     Type: String
