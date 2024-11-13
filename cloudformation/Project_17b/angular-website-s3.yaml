@@ -1,44 +1,73 @@
-AWSTemplateFormatVersion: "2010-09-09"
-Description: CloudFormation Template for Hosting an Angular Static Website on S3 with Public Access
+AWSTemplateFormatVersion: 2010-09-09
 
+## =================== DESCRIPTION =================== ##
+Description: >-
+  AWS CloudFormation sample template
+  - Create a new S3 bucket and it's policy, configure it to host a static website  
+
+## =================== PARAMETERS =================== ##
 Parameters:
-  BucketName:
+  paramStaticWebsiteHostingBucketName:
+    Description: Specify a unique name for S3 bucket that will host static website
     Type: String
-    Description: "Name of the S3 bucket to host the Angular website"
-    AllowedPattern: "^[a-z0-9.-]+$"
-    ConstraintDescription: "The bucket name can only contain lowercase letters, numbers, dots, and hyphens."
+    Default: michael-website-hosting-bucket
+    AllowedPattern: "(?!(^xn--|.+-s3alias$))^[a-z0-9][a-z0-9-]{1,61}[a-z0-9]$"  # includes using S3 Transfer Acceleration
+    ConstraintDescription: Bucket names must be between 3 (min) and 63 (max) characters long, can consist only of lowercase letters, numbers, dots, and hyphens, must begin and end with a letter or number, etc. 
+  paramUniqueTagName:
+    Description: Specify a unique name for tag
+    Type: String
+    Default: static-website-hosting-to-s3
+    AllowedPattern: "[\\x20-\\x7E]*"
+    ConstraintDescription: Must contain only ASCII characters
 
+## =================== RESOURCES =================== ##
 Resources:
-  AngularWebsiteBucket:
-    Type: AWS::S3::Bucket
+  # Create a new S3 bucket and configure it to host a static website   
+  myStaticWebsiteHostingBucket:
+    Type: 'AWS::S3::Bucket'
+    DeletionPolicy: Delete #allow CloudFormation delete the bucket when stack is deleted
     Properties:
-      BucketName: !Ref BucketName
-      PublicAccessBlockConfiguration: 
+      BucketName: !Ref paramStaticWebsiteHostingBucketName
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: error.html
+      VersioningConfiguration:
+        Status: Enabled
+      # AccessControl: PublicRead # throws an error: Bucket cannot have public ACLs set with BlockPublicAccess enabled
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: ObjectWriter
+      PublicAccessBlockConfiguration:
         BlockPublicAcls: false
         BlockPublicPolicy: false
         IgnorePublicAcls: false
         RestrictPublicBuckets: false
-      WebsiteConfiguration:
-        IndexDocument: index.html
-        ErrorDocument: index.html
+      Tags:
+        - Key: mastering-cloudformation
+          Value:  !Ref paramUniqueTagName
 
-  BucketPolicy:
-    Type: AWS::S3::BucketPolicy
+  # Create a policy for myStaticWebsiteHostingBucket to give a public access to website
+  myStaticWebsiteHostingBucketPolicy:
+    Type: 'AWS::S3::BucketPolicy'
     Properties:
-      Bucket: !Ref AngularWebsiteBucket
+      Bucket: !Ref myStaticWebsiteHostingBucket
       PolicyDocument:
-        Version: "2012-10-17"
+        Version: 2012-10-17
         Statement:
-          - Sid: "PublicReadGetObject"
+          - Sid: PublicReadForGetBucketObjects
             Effect: Allow
-            Principal: "*"
-            Action: "s3:GetObject"
-            Resource: !Sub "${AngularWebsiteBucket.Arn}/*"
-    DependsOn: AngularWebsiteBucket  # Ensures the bucket is created and configured before applying the policy
+            Principal: '*'
+            Action: 's3:GetObject'
+            Resource: !Join 
+              - ''
+              - - 'arn:aws:s3:::'
+                - !Ref myStaticWebsiteHostingBucket
+                - /*
 
+## =================== OUTPUT =================== ##
 Outputs:
-  WebsiteURL:
-    Description: "Static Website URL"
-    Value: !GetAtt AngularWebsiteBucket.WebsiteURL
-    Export:
-      Name: AngularWebsiteURL
+  outputWebsiteURL:
+    Value: !GetAtt 
+      - myStaticWebsiteHostingBucket
+      - WebsiteURL
+    Description: Static website URL

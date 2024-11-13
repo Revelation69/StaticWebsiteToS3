@@ -138,8 +138,3 @@ Outputs:
   outputCodeBuildProject:
     Description: CodeBuild project name
     Value: !Ref myCodeBuildProject
-  WebsiteURL:
-    Description: "Static Website URL"
-    Value: !GetAtt AngularWebsiteBucket.WebsiteURL
-    Export:
-      Name: AngularWebsiteURL

@@ -280,3 +280,6 @@ Finally, the **Outputs** section will provide you with the **name of the CodeBui
 ---
 
 This CloudFormation template essentially automates the process of setting up a continuous integration and deployment pipeline for a static website. It ties together GitHub, CodeBuild, and S3 to allow automatic building and hosting of your website.
+
+
+Make sure the bucket exists

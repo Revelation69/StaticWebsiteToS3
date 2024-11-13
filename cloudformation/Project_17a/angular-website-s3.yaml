@@ -11,6 +11,7 @@ Parameters:
 Resources:
   AngularWebsiteBucket:
     Type: AWS::S3::Bucket
+    DeletionPolicy: Retain # keep S3 bucket when its stack is deleted
     Properties:
       BucketName: !Ref BucketName
       PublicAccessBlockConfiguration: 
