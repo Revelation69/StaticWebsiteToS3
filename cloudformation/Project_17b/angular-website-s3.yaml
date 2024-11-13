@@ -62,8 +62,8 @@ Resources:
                 - /*
           - Sid: AllowCodeBuildToPutObjects
             Effect: Allow
-            Principal: 
-              AWS: arn:aws:iam::${AWS::AccountId}:role/role-for-${paramCodeBuildProjectName}
+            Principal:
+              AWS: arn:aws:iam::${AWS::AccountId}:role/role-for-michael-codebuild-for-website-hosting
             Action: "s3:PutObject"
             Resource: !Join 
               - ""
