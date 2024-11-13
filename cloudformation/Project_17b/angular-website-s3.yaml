@@ -34,9 +34,6 @@ Resources:
       VersioningConfiguration:
         Status: Enabled
       # AccessControl: PublicRead # throws an error: Bucket cannot have public ACLs set with BlockPublicAccess enabled
-      OwnershipControls:
-        Rules:
-          - ObjectOwnership: ObjectWriter
       PublicAccessBlockConfiguration:
         BlockPublicAcls: false
         BlockPublicPolicy: false
@@ -63,6 +60,16 @@ Resources:
               - - 'arn:aws:s3:::'
                 - !Ref myStaticWebsiteHostingBucket
                 - /*
+          - Sid: AllowCodeBuildToPutObjects
+            Effect: Allow
+            Principal: 
+              AWS: arn:aws:iam::${AWS::AccountId}:role/role-for-${paramCodeBuildProjectName}
+            Action: "s3:PutObject"
+            Resource: !Join 
+              - ""
+              - - "arn:aws:s3:::"
+                - !Ref myStaticWebsiteHostingBucket
+                - "/*"
 
 ## =================== OUTPUT =================== ##
 Outputs:
