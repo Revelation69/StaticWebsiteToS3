@@ -28,7 +28,7 @@ Parameters:
   paramBuildSpecRelativePathInGitHub:
     Description: Provide a relative path for BuildSpec yaml file in source code for static website 
     Type: String
-    Default:  frontend/aws-app/buildspec.yml
+    Default:  frontend/aws-app/buildspec.yaml
   paramStaticWebsiteHostingBucketName:
     Description: Specify an existing S3 bucket that hosts static website
     Type: String
@@ -49,7 +49,7 @@ Resources:
       RoleName: !Sub role-for-${paramCodeBuildProjectName}
       Path: /
       AssumeRolePolicyDocument:
-        Version: 2012-10-17
+        Version: "2012-10-17"
         Statement:
           - Action:
               - 'sts:AssumeRole'
@@ -60,7 +60,7 @@ Resources:
       Policies:
         - PolicyName: !Sub policy-for-${paramCodeBuildProjectName}
           PolicyDocument:
-            Version: 2012-10-17
+            Version: "2012-10-17"
             Statement:
               # statement to create and stream CloudWatch
               - Action:
@@ -71,7 +71,7 @@ Resources:
                 Resource:
                   - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:${paramCodeBuildProjectName}-CloudWatchLogs
                   - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:${paramCodeBuildProjectName}-CloudWatchLogs:*
-              # statement to access S3 bucket that hosts static website (CodeBuild will save Artofacts there)
+              # statement to access S3 bucket that hosts static website (CodeBuild will save Artifacts there)
               - Action:
                   - s3:PutObject
                   - s3:GetObject

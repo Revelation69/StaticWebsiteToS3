@@ -49,7 +49,7 @@ Resources:
     Properties:
       Bucket: !Ref myStaticWebsiteHostingBucket
       PolicyDocument:
-        Version: 2012-10-17
+        Version: "2012-10-17"
         Statement:
           - Sid: PublicReadForGetBucketObjects
             Effect: Allow
@@ -62,15 +62,14 @@ Resources:
                 - /*
           - Sid: AllowCodeBuildToPutObjects
             Effect: Allow
-            Principal:
-              AWS: arn:aws:iam::${AWS::AccountId}:role/role-for-michael-codebuild-for-website-hosting
+            Principal: 
+              Service: codebuild.amazonaws.com
             Action: "s3:PutObject"
             Resource: !Join 
               - ""
               - - "arn:aws:s3:::"
                 - !Ref myStaticWebsiteHostingBucket
                 - "/*"
-
 ## =================== OUTPUT =================== ##
 Outputs:
   outputWebsiteURL:
