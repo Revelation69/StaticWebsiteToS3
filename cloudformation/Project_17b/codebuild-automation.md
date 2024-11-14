@@ -1,8 +1,8 @@
+# Step 1: Understanding our templates
 
+## CodeBuild YAML file
 
-# CodeBuild YAML file
-
-## Version
+- Version
 
 ```yaml
 version: 0.2
@@ -15,7 +15,7 @@ The file begins with the version declaration `version: 0.2`, which specifies the
 
 Next, we have the `env` section where environment variables are defined. In this case, there is a variable `APP_ENV` that is set to `prod`. This variable is used to signify that the build is for the **production** environment, and you can use it in your application to alter configurations based on the environment.
 
-## Phases
+- Phases
 
 ```yaml
 phases:
@@ -47,7 +47,7 @@ Moving on to the `build` phase, the first command again echoes a message, lettin
 
 After the build process is complete, the `post_build` phase runs. This phase typically handles post-processing tasks such as preparing the built files for deployment. The first command here simply prints a message indicating that the build process has finished. Next, the command `cd dist/app-for-aws` navigates into the `dist/app-for-aws` directory, where the built production files are located. Finally, the command `ls -la` lists all files in this directory, which helps to verify that the build was successful and to ensure that the necessary files are present.
 
-## Artifacts
+- Artifacts
 
 ```yaml
 artifacts:
@@ -60,7 +60,7 @@ artifacts:
 
 The `artifacts` section defines what files will be included in the output of the build process. The `base-directory` is set to `frontend/app-for-aws/dist*`, which means that CodeBuild will look in the `dist` folder within the `frontend/app-for-aws` directory for the build artifacts. The wildcard `*` ensures that any folder under `dist`, such as `dist/app-for-aws`, is included. The `discard-paths: yes` setting ensures that the folder structure is not preserved when uploading to the destination, meaning all the files will be placed directly in the root of the S3 bucket. Finally, the `files` section specifies that all files within the `dist` directory and its subdirectories (denoted by `**/*`) should be included in the artifact upload.
 
-# CloudFormation
+## CloudFormation
 
 This CloudFormation template essentially automates the process of setting up AWS resources to deploy our static website, using GitHub as the source for the website's code, AWS CodeBuild to build the website, and an S3 bucket to store the built website. 
 
@@ -279,7 +279,102 @@ Finally, the **Outputs** section will provide you with the **name of the CodeBui
 
 ---
 
-This CloudFormation template essentially automates the process of setting up a continuous integration and deployment pipeline for a static website. It ties together GitHub, CodeBuild, and S3 to allow automatic building and hosting of your website.
+Now that our templates are out of the way, let's get our hands started.
 
+# Step 2. Provide CodeBuild with access to GitHub repo
 
-Make sure the bucket exists
+First, we will give CodeBuild access to our GitHub repository and the easiest and safest way to to this is to create a personal access token. To create tour token, navigate to GitHub and click on your profile photo, then click on `Settings`
+
+[Image]
+
+In the left sidebar, scroll down and click Developer settings.
+
+[Image]
+
+In the left sidebar, under Personal access tokens, click Tokens (classic) (since Fine-grained tokens is in beta and might not be compatible with AWS CodeBuild yet), then click Generate new token.
+
+[Image]
+
+Select the scopes you'd like to grant this token (as shown in the screeenshots below)
+
+[Image]
+
+[Image]
+
+[Image]
+
+[Image]
+
+[Image]
+
+After selecting the scopes, click Generate token.
+
+[Image]
+
+Once your token is generated, make sure to copy it and save it in a secure place. You will need this token to provide CodeBuild with access to your GitHub repository.
+
+# Step 3. Launch the CloudFormation stack
+
+Now that we have our GitHub access token, we can proceed to launch the CloudFormation stack. Here's how to do it:
+
+1. Go to the AWS Management Console and navigate to the CloudFormation service.
+
+2. Click on Create stack.
+
+[Image]
+
+3. In the Create stack wizard, select Upload a template file and click Choose file. Then, select the CloudFormation template file you created earlier and click Next.
+
+Note: First upload the template for static website bucket as defined [here](angular-website-s3.yaml). This template will help create the bucket that CodeBuild will later access.
+
+[Image]
+
+4. On the Specify stack details page, provide the necessary parameters:
+
+- **Stack Name**: Give your stack a name that describes what it does.
+- **paramPersonalGitHubAccessToken**: Paste the GitHub access token you generated earlier.
+- **paramGitHubLink**: Leave the default value, which points to the sample GitHub repository.
+- **paramBuildSpecRelativePathInGitHub**: Leave the default value, which specifies the path to the buildspec.yml file in the sample repository.
+- **paramStaticWebsiteHostingBucketName**: Leave the default value, which specifies the name of the S3 bucket that will host the static website.
+- **paramUniqueTagName**: Leave the default value or enter a unique tag for the resources created by the stack.
+
+Click Next.
+
+[Image]
+
+5. On the Configure stack options page, you can provide additional configurations if needed. Click Next.
+
+6. On the Review stack page, review the stack details and click Create stack.
+
+[Image]
+
+7. Wait for the stack creation process to complete. Once the stack status changes to CREATE_COMPLETE, you can proceed to the next step.
+
+[Image]
+
+8. Verify that the CodeBuild project was created successfully by checking the CloudFormation stack outputs. The output should display the name of the CodeBuild project.
+
+[Image]
+
+At this stage, our application should be up and running, and to see that, click on the static website stack and check the outputs section for the link. Click on the link, and voila our app is live! 🎉
+
+# Step 4. Test the CodeBuild project
+
+Now that the CloudFormation stack has created the CodeBuild project, let's test our webhook configuration by pushing a change to the GitHub repository.
+
+1. Go to your code editor and navigate to frontend/aws-app/src/app/app.component.html
+
+2. Make a change to the code
+
+3. Push the changes to the main branch of the repository.
+
+4. Go to the AWS Management Console and navigate to the CodeBuild to watch the code automatically builds itself. Afterwards go refresh the app on your browser and see the magic that has happended!😍
+
+Final Stage: Cleanup
+
+You might be charged for running resources. That is why it is important to clean all provisioned resources once you are done with the stack. By deleting a stack, all its resources will be deleted as well.
+
+Note: CloudFormation won’t delete an S3 bucket that contains objects. First make sure to empty the bucket before deleting the stack. Of course, you can automate the process by creating a Lambda function which deletes all object versions and the objects themselves. I'll try to cover that part in further article.
+
+Now give yourself a pat on the back, you've just created magic!
+
