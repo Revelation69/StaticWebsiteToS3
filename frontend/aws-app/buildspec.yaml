@@ -1,10 +1,9 @@
 version: 0.2
 env:
   variables:
-    # APP_ENV: 'prod'
+    APP_ENV: 'prod'
     BUCKET_NAME: 'michael-website-hosting-bucket'
 phases:
-  # use the install phase only for installing packages in the build environment
   install:
     runtime-versions:
        nodejs: 18
@@ -14,22 +13,20 @@ phases:
       - npm install && npm install -g @angular/cli
   build:
     commands:
-      - echo Build process started now
+      - echo "Build process started now"
       - cd $CODEBUILD_SRC_DIR/frontend/aws-app
-      - ng build
-     # - ng build --configuration=production
+      - ng build --configuration=production
   post_build:
     commands:
-      - echo Build process finished, upload artifacts to S3 bucket
+      - echo "Build process finished, upload artifacts to S3 bucket"
       - cd dist/aws-app
       - ls -la
-      - echo "Files in dist/aws-app: $(ls -l)"
+      - echo "Files in dist/aws-app:"
+      - ls -l
       - aws s3 cp . s3://$BUCKET_NAME/ --recursive
 
-
 artifacts:
-  #  get files within the dist folder only
   base-directory: 'frontend/aws-app/dist/aws-app'
   discard-paths: yes
   files:
-    - '**/*'  
+    - '**/*'
