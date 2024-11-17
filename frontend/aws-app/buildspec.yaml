@@ -2,7 +2,6 @@ version: 0.2
 env:
   variables:
     APP_ENV: 'prod'
-    BUCKET_NAME: 'michaelajala.top'
 phases:
   install:
     runtime-versions:
