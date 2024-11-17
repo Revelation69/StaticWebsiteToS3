@@ -118,6 +118,9 @@ Resources:
         Type: LINUX_CONTAINER
         ComputeType: BUILD_GENERAL1_SMALL
         Image: aws/codebuild/standard:7.0
+        EnvironmentVariables:
+          - Name: BUCKET_NAME
+            Value: !Ref paramStaticWebsiteHostingBucketName
       ServiceRole: !Ref myCodeBuildProjectRole # !Sub 'arn:aws:iam::${AWS::AccountId}:role/${myCodeBuildRole}'
       TimeoutInMinutes: 5
       Artifacts: # drop the build artifacts of S3 bucket that hosts static website
