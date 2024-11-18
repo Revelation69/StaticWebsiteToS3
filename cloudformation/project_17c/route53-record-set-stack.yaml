@@ -77,7 +77,7 @@ Resources:
         - Name: !Ref paramRootDomain # point to an S3 bucket with root domain in the same account (such as example.com)
           Type: A # 'A' routes traffic to an IPv4 address and some AWS resources
           AliasTarget:
-              DNSName: s3-website.eu-central-1.amazonaws.com
+              DNSName: s3-website.eu-central-1.amazonaws.com # Route 53 requires the target to be the AWS regional static website endpoint rather than the full bucket website URL.
               HostedZoneId: !FindInMap # note, that ite is different from paramHostedZoneId - this hosted zone is for region that you created the bucket in!
                 - RegionMap
                 - !Ref 'AWS::Region'
@@ -93,7 +93,7 @@ Resources:
         - Name: !Sub ${paramSubdomain}.${paramRootDomain} # point to an S3 bucket with subdomain in the same account (such as www.example.com)
           Type: A # 'A' routes traffic to an IPv4 address and some AWS resources
           AliasTarget:
-              DNSName: s3-website.eu-central-1.amazonaws.com
+              DNSName: s3-website.eu-central-1.amazonaws.com 
               HostedZoneId: !FindInMap # note, that it is different from paramHostedZoneId - this hosted zone is for region that you created the bucket in!
                 - RegionMap
                 - !Ref 'AWS::Region'
