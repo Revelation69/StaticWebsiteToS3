@@ -1,0 +1,98 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+## =================== DESCRIPTION =================== ##
+Description: >-
+  AWS CloudFormation sample template
+  - Create S3 bucket for subdomain (such as www.example.com) and configure it to host a static website
+  - Create S3 bucket for root domain (such as example.com) and set it up to redirect requests to S3 bucket for subdomain (such as from example.com to www.example.com)
+  - Note: both buckets are private. A new policy for S3 bucket for subdomain will be created in `aws-cloudfront-stack.yaml` template to let CloudFront OAI access S3 bucket content
+
+## ===================== METADATA ===================== ##
+Metadata:
+  'AWS::CloudFormation::Interface':
+    ParameterGroups:
+      - Label:
+          default: DNS parameters for S3 buckets
+        Parameters:
+          - paramRootDomain
+          - paramSubdomain
+      - Label:
+          default: AWS tag parameters
+        Parameters:
+          - paramUniqueTagName
+
+## ==================== PARAMETERS ==================== ##
+Parameters:
+  paramRootDomain:
+    Description: Specify a root domain for your website (such as example.com)
+    Type: String
+  paramSubdomain:
+    Description: OPTIONAL. Specify a subdomain (such as 'www' or 'apex' for www.example.com or apex.example.com). You can leave it empty to skip.
+    Type: String
+    Default: www
+  paramUniqueTagName:
+    Description: Specify a unique name for tag
+    Type: String
+    Default: static-website-hosting-to-s3
+    AllowedPattern: "[\\x20-\\x7E]*"
+    ConstraintDescription: Must contain only ASCII characters
+
+## ==================== MAPPINGS ==================== ##
+# Mappings:
+
+## ==================== CONDITIONS ==================== ##
+# Conditions:
+
+## =================== RESOURCES =================== ##
+Resources:
+  # create S3 bucket for subdomain (such as www.example.com) and configure it to host a static website
+  myS3BucketForSubdomain:
+    Type: 'AWS::S3::Bucket'
+    DeletionPolicy: Retain # keep S3 bucket when its stack is deleted
+    Properties:
+      BucketName: !Sub ${paramSubdomain}.${paramRootDomain} # use the name of subdomain with domain, such as www.example.com
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: error.html
+      VersioningConfiguration: # turn versioning on in case we need to rollback newly built files to older version
+        Status: Enabled
+      AccessControl: BucketOwnerFullControl
+      Tags:
+        - Key: mastering-cloudformation
+          Value: !Ref paramUniqueTagName
+
+  # create S3 bucket for root domain (such as example.com) and set it up to redirect requests to S3 bucket for subdomain (such as from example.com to www.example.com)
+  myS3BucketForRootDomain:
+    Type: 'AWS::S3::Bucket'
+    DeletionPolicy: Retain # keep S3 bucket when its stack is deleted
+    Properties:
+      BucketName: !Ref paramRootDomain # use the name of your domain, such as example.com
+      WebsiteConfiguration:
+        RedirectAllRequestsTo: # Configure the bucket to route traffic to the subdomain bucket
+          HostName: !Ref myS3BucketForSubdomain
+          Protocol: https
+      AccessControl: BucketOwnerFullControl
+      Tags:
+        - Key: mastering-cloudformation
+          Value: !Ref paramUniqueTagName
+
+## ======================= OUTPUT ====================== ##
+Outputs:
+  outputS3WebsiteURLForRootDomain:
+    Description: Amazon S3 website endpoint for root domain
+    Value: !GetAtt myS3BucketForRootDomain.WebsiteURL
+  outputS3DomainNameForRootDomain:
+    Description:  IPv4 DNS name of S3 bucket for root domain
+    Value: !GetAtt myS3BucketForRootDomain.DomainName
+  outputS3RegionalDomainNameForRootDomain:
+    Description:  Regional domain name of S3 bucket for root domain
+    Value: !GetAtt myS3BucketForRootDomain.RegionalDomainName 
+  outputS3WebsiteURLForSubdomain:
+    Description: Amazon S3 website endpoint for subdomain
+    Value: !GetAtt myS3BucketForSubdomain.WebsiteURL
+  outputS3DomainNameForSubdomain:
+    Description:  IPv4 DNS name of S3 bucket for subdomain
+    Value: !GetAtt myS3BucketForSubdomain.DomainName
+  outputS3RegionalDomainNameForSubdomain:
+    Description:  Regional domain name of S3 bucket for subdomain
+    Value: !GetAtt myS3BucketForSubdomain.RegionalDomainName  
